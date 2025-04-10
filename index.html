@@ -1,39 +1,141 @@
 <!DOCTYPE html>
-<html>
-  <body>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Trip Upload</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #f7f9fc;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 40px;
+    }
+
+    h2 {
+      color: #333;
+    }
+
+    .container {
+      background: white;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+      width: 100%;
+      max-width: 500px;
+    }
+
+    input[type="text"],
+    input[type="file"] {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 20px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+    }
+
+    button {
+      background-color: #007BFF;
+      color: white;
+      border: none;
+      padding: 12px 20px;
+      border-radius: 8px;
+      cursor: pointer;
+      width: 100%;
+    }
+
+    button:hover {
+      background-color: #0056b3;
+    }
+
+    .progress-container {
+      margin-top: 20px;
+      width: 100%;
+    }
+
+    .progress-bar {
+      background: #e0e0e0;
+      border-radius: 12px;
+      overflow: hidden;
+      height: 20px;
+      margin-bottom: 10px;
+    }
+
+    .progress {
+      background: #4CAF50;
+      height: 100%;
+      width: 0%;
+      transition: width 0.3s;
+    }
+
+    .status {
+      font-size: 0.95em;
+      color: #555;
+      white-space: pre-wrap;
+    }
+  </style>
+</head>
+<body>
+  <h2>Upload Trip Photos 📷</h2>
+  <div class="container">
     <form id="uploadForm">
-      <input type="file" id="file" name="file" multiple><br><br>
-      <button type="submit">Upload</button>
+      <input type="text" id="name" placeholder="Enter your name" required>
+      <input type="file" id="file" multiple required>
+      <button type="submit">Upload Files</button>
     </form>
-    <p id="status"></p>
 
-    <script>
-      const form = document.getElementById('uploadForm');
-      form.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const files = document.getElementById('file').files;
-        const status = document.getElementById('status');
+    <div class="progress-container">
+      <div class="progress-bar"><div class="progress" id="progressBar"></div></div>
+      <div class="status" id="status"></div>
+    </div>
+  </div>
 
-        for (let file of files) {
-          const reader = new FileReader();
-          reader.onload = async function() {
-            const base64Data = reader.result.split(',')[1];
-            const formData = new FormData();
-            formData.append('fileData', base64Data);
-            formData.append('filename', file.name);
-            formData.append('mimeType', file.type);
+  <script>
+    const form = document.getElementById('uploadForm');
+    const progressBar = document.getElementById('progressBar');
+    const statusDiv = document.getElementById('status');
 
-            const response = await fetch('https://script.google.com/macros/s/AKfycbz2bXo22GkfwanXa6VtcAqH6czgdHEMPgGCPOpriYKqKNyuNTd-MuOj-BSK-vFL80qW6Q/exec', {
-              method: 'POST',
-              body: formData
-            });
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
 
-            const result = await response.text();
-            status.innerText += result + "\n";
-          };
-          reader.readAsDataURL(file);
-        }
-      });
-    </script>
-  </body>
-</html>
+      const name = document.getElementById('name').value.trim();
+      const files = document.getElementById('file').files;
+
+      if (!name || files.length === 0) {
+        alert('Please enter your name and select files.');
+        return;
+      }
+
+      statusDiv.textContent = '';
+      progressBar.style.width = '0%';
+
+      let completed = 0;
+
+      for (let file of files) {
+        const reader = new FileReader();
+        reader.onload = async function () {
+          const base64Data = reader.result.split(',')[1];
+
+          const formData = new FormData();
+          formData.append('folderName', name);
+          formData.append('fileData', base64Data);
+          formData.append('filename', file.name);
+          formData.append('mimeType', file.type);
+
+          const response = await fetch('YOUR_SCRIPT_DEPLOYED_URL_HERE', {
+            method: 'POST',
+            body: formData
+          });
+
+          const result = await response.text();
+          statusDiv.textContent += result + '\n';
+
+          completed++;
+          progressBar.style.width = `${(completed / files.length) * 100}%`;
+        };
+        reader.readAsDataURL(file);
+      }
+    });
+  </script>
+</body>
