@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+  <body>
+    <form id="uploadForm">
+      <input type="file" id="file" name="file" multiple><br><br>
+      <button type="submit">Upload</button>
+    </form>
+    <p id="status"></p>
+
+    <script>
+      const form = document.getElementById('uploadForm');
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const files = document.getElementById('file').files;
+        const status = document.getElementById('status');
+
+        for (let file of files) {
+          const reader = new FileReader();
+          reader.onload = async function() {
+            const base64Data = reader.result.split(',')[1];
+            const formData = new FormData();
+            formData.append('fileData', base64Data);
+            formData.append('filename', file.name);
+            formData.append('mimeType', file.type);
+
+            const response = await fetch('https://script.google.com/macros/s/AKfycbz2bXo22GkfwanXa6VtcAqH6czgdHEMPgGCPOpriYKqKNyuNTd-MuOj-BSK-vFL80qW6Q/exec', {
+              method: 'POST',
+              body: formData
+            });
+
+            const result = await response.text();
+            status.innerText += result + "\n";
+          };
+          reader.readAsDataURL(file);
+        }
+      });
+    </script>
+  </body>
+</html>
