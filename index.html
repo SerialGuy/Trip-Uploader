@@ -1,16 +1,16 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Trip Upload</title>
+  <meta charset="UTF-8" />
+  <title>Trip Upload Portal</title>
   <style>
     body {
       font-family: 'Segoe UI', sans-serif;
-      background-color: #f7f9fc;
+      background-color: #f0f2f5;
       display: flex;
       flex-direction: column;
       align-items: center;
-      padding: 40px;
+      padding: 50px;
     }
 
     h2 {
@@ -18,31 +18,31 @@
     }
 
     .container {
-      background: white;
+      background: #fff;
       padding: 30px;
-      border-radius: 12px;
-      box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+      border-radius: 10px;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
       width: 100%;
-      max-width: 500px;
+      max-width: 480px;
     }
 
-    input[type="text"],
-    input[type="file"] {
+    input[type="text"], input[type="file"] {
       width: 100%;
-      padding: 10px;
-      margin-bottom: 20px;
+      padding: 12px;
+      margin: 10px 0;
       border-radius: 8px;
       border: 1px solid #ccc;
     }
 
     button {
+      width: 100%;
       background-color: #007BFF;
       color: white;
       border: none;
-      padding: 12px 20px;
+      padding: 12px;
       border-radius: 8px;
       cursor: pointer;
-      width: 100%;
+      margin-top: 10px;
     }
 
     button:hover {
@@ -51,40 +51,39 @@
 
     .progress-container {
       margin-top: 20px;
-      width: 100%;
     }
 
     .progress-bar {
-      background: #e0e0e0;
-      border-radius: 12px;
+      width: 100%;
+      background-color: #ddd;
+      border-radius: 8px;
       overflow: hidden;
-      height: 20px;
-      margin-bottom: 10px;
+      height: 18px;
     }
 
     .progress {
-      background: #4CAF50;
       height: 100%;
       width: 0%;
-      transition: width 0.3s;
+      background-color: #28a745;
+      transition: width 0.3s ease-in-out;
     }
 
     .status {
-      font-size: 0.95em;
+      font-size: 14px;
+      margin-top: 10px;
       color: #555;
-      white-space: pre-wrap;
+      white-space: pre-line;
     }
   </style>
 </head>
 <body>
-  <h2>Upload Trip Photos 📷</h2>
+  <h2>Upload Trip Photos 📸</h2>
   <div class="container">
     <form id="uploadForm">
-      <input type="text" id="name" placeholder="Enter your name" required>
-      <input type="file" id="file" multiple required>
-      <button type="submit">Upload Files</button>
+      <input type="text" id="name" placeholder="Enter your name" required />
+      <input type="file" id="file" multiple required />
+      <button type="submit">Upload</button>
     </form>
-
     <div class="progress-container">
       <div class="progress-bar"><div class="progress" id="progressBar"></div></div>
       <div class="status" id="status"></div>
@@ -94,42 +93,45 @@
   <script>
     const form = document.getElementById('uploadForm');
     const progressBar = document.getElementById('progressBar');
-    const statusDiv = document.getElementById('status');
+    const status = document.getElementById('status');
 
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
-
       const name = document.getElementById('name').value.trim();
       const files = document.getElementById('file').files;
 
       if (!name || files.length === 0) {
-        alert('Please enter your name and select files.');
+        alert("Please enter a name and choose files.");
         return;
       }
 
-      statusDiv.textContent = '';
+      status.textContent = '';
       progressBar.style.width = '0%';
 
       let completed = 0;
 
-      for (let file of files) {
+      for (const file of files) {
         const reader = new FileReader();
         reader.onload = async function () {
           const base64Data = reader.result.split(',')[1];
 
           const formData = new FormData();
           formData.append('folderName', name);
-          formData.append('fileData', base64Data);
           formData.append('filename', file.name);
           formData.append('mimeType', file.type);
+          formData.append('fileData', base64Data);
 
-          const response = await fetch('https://script.google.com/macros/library/d/17-ABmPgFPT0bN8LGqGI17K25JXz9kcMkXpVBcjvGxOFQhiqRYzTdVM34/2', {
-            method: 'POST',
-            body: formData
-          });
+          try {
+            const response = await fetch('https://script.google.com/macros/s/AKfycbywk0CrX64odMWuEwi7ubqS8-8ljw0pblP_O9Kotl89j3kn5RkIE75nYnOH8iHEXJ-Lmw/exec', {
+              method: 'POST',
+              body: formData
+            });
 
-          const result = await response.text();
-          statusDiv.textContent += result + '\n';
+            const result = await response.text();
+            status.textContent += result + '\n';
+          } catch (error) {
+            status.textContent += 'Failed to upload ' + file.name + '\n';
+          }
 
           completed++;
           progressBar.style.width = `${(completed / files.length) * 100}%`;
